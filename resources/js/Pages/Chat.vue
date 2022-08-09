@@ -1,9 +1,10 @@
 <script setup>
-
+import TheNavbar from "../Components/TheNavbar.vue";
 </script>
 
 <template>
-    <div>
-        chat
-    </div>
+  <div>
+    <TheNavbar />
+    <h1>Chat</h1>
+  </div>
 </template>

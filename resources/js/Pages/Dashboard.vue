@@ -1,9 +1,10 @@
 <script setup>
-
+import TheNavbar from "../Components/TheNavbar.vue";
 </script>
 
 <template>
-    <div>
-        dashboard
-    </div>
+  <div>
+    <TheNavbar />
+    <h1>Dashboard</h1>
+  </div>
 </template>

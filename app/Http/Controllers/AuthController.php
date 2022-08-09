@@ -57,6 +57,6 @@ class AuthController extends Controller
         return response()->json([
             'status'  => 'success',
             'message' => 'User has been successfully logged out and token revoked'
-        ], 201);
+        ], Response::HTTP_CREATED);
     }
 }
