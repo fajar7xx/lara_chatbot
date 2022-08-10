@@ -13,10 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
+        Schema::disableForeignKeyConstraints();
         Schema::create('chats', function (Blueprint $table) {
             $table->id();
+            $table->string('session_id');
+            $table->text('message');
+            $table->text('sender_name')->nullable();
+            $table->text('sender_id')->nullable();
+            $table->text('receiver_id')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
@@ -26,6 +34,8 @@ return new class extends Migration
      */
     public function down()
     {
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('chats');
+        Schema::enableForeignKeyConstraints();
     }
 };

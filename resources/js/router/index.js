@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
+import TokenService from "../services/TokenService";
 
-const Token = localStorage.getItem("token");
 
 const Login = () => import("../Pages/Login.vue");
 const Dashboard = () => import("../Pages/Dashboard.vue");
@@ -58,7 +58,7 @@ const router = createRouter({
 
 // navigation guard for authentication and authorization
 router.beforeEach((to, from) => {
-    if (to.meta.requiresAuth && !Token) {
+    if (to.meta.requiresAuth && !TokenService.getAccessToken()) {
         // need to login if not already logged in
         return {
             name: "Login",

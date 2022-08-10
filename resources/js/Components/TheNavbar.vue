@@ -1,5 +1,7 @@
 <script setup>
+import TokenService from "../services/TokenService";
 import API from "../utils/API";
+
 
 const logout = async () => {
   console.log("logout now");
@@ -7,7 +9,10 @@ const logout = async () => {
     // const response = await axios.get("http://localhost:8000/api/logout");
     const response = await API.get("logout");
     console.log(response.data);
-    localStorage.clear();
+    // localStorage.clear();
+
+    TokenService.clearToken()
+
     location.reload();
   } catch (e) {
     console.error(e);

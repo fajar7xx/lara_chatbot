@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Chat;
 use Illuminate\Http\Request;
 use Aws\LexRuntimeService\LexRuntimeServiceClient;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 class ChatController extends Controller
 {
@@ -15,34 +17,37 @@ class ChatController extends Controller
     public function __construct()
     {
         $this->botConfig = [
-            'region'   => env("AWS_DEFAULT_REGION"),
+            'region'   => env("AWS_DEFAULT_REGION"), //ap-southeast-1
             'version'  => 'latest',
             'botName'  => 'LaravelChatbot', //required
             'botAlias' => 'beta',           //required
         ];
-        $this->senderBotName = 'LexBot';
-        $this->senderBotId = '1lexbot';
+        $this->senderBotName = 'lexbot';
+        $this->senderBotId = 'lexbot';
     }
 
     public function init(Request $request)
     {
         $lexRuntimeServiceClient = new LexRuntimeServiceClient($this->botConfig);
 
-        $this->botConfig['userId'] = 'Client-' . \Auth::id();
+        $userId = Auth::id();
+        $this->botConfig['userId'] = 'client-' . $userId;
         $newSessionData = $lexRuntimeServiceClient->putSession($this->botConfig);
 
-        return [
-            "dialogState" => $newSessionData["dialogState"],
-            "messages"    => [
-                Chat::create([
-                    "session_id"  => $newSessionData["sessionId"],
-                    'message'     => "Hi",
-                    'sender_name' => $this->senderBotName,
-                    'sender_id'   => $this->senderBotId,
-                ])
-            ],
-            "slots" => $newSessionData["slots"],
-        ];
+        // dd($this->botConfig);
+
+        $messages = Chat::create([
+            "session_id"  => $newSessionData["sessionId"],
+            'message'     => "Hi",
+            'sender_name' => $this->senderBotName,
+            'sender_id'   => $this->senderBotId,
+        ]);
+
+        return response()->json([
+                "dialogState" => $newSessionData["dialogState"],
+                "messages"    => [$messages],
+                "slots"       => $newSessionData["slots"],
+            ], Response::HTTP_OK);
     }
 
     public function send(Request $request)
@@ -51,7 +56,7 @@ class ChatController extends Controller
 
         $newMessage = $this->botConfig;
         $newMessage['inputText'] = $request->message;
-        $newMessage['userId'] = Auth::id();
+        $newMessage['userId'] = 'client-' . Auth::id();
 
         $returnMessage = $lexRuntimeServiceClient->postText($newMessage);
 
@@ -86,10 +91,16 @@ class ChatController extends Controller
             ]);
         }
 
-        return [
+        // return [
+        //     "dialogState" => $returnMessage["dialogState"],
+        //     "slots"       => $returnMessage["slots"],
+        //     "messages"    => $messsages
+        // ];
+
+        return response()->json([
             "dialogState" => $returnMessage["dialogState"],
             "slots"       => $returnMessage["slots"],
             "messages"    => $messsages
-        ];
+        ], Response::HTTP_OK);
     }
 }
