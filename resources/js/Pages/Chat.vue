@@ -2,43 +2,73 @@
 import { reactive, onMounted, watch, ref } from "vue";
 import API from "../utils/API";
 import TheNavbar from "../Components/TheNavbar.vue";
+import { useRouter } from "vue-router";
 
+const router = useRouter
+
+const messages = ref([]);
 const newMessage = ref("");
 const messageEnded = ref(false);
-const messages = ref([]);
 
 onMounted(() => {
+  console.log("chat started");
   initMessage();
 });
 
 const initMessage = async () => {
   try {
     const response = await API.post("/chat/init");
-    console.log(response);
-    fetchMessage(response.data);
+
+    console.group("init message");
+    console.log(response.data);
+    console.groupEnd();
+
+    fetchMessage(response.data.messages);
+    newMessage.value = "";
   } catch (e) {
-    console.error(SVGComponentTransferFunctionElement);
+    console.error(e);
   }
 };
 
-const addMessage = async () => {
+const addMessage = async (newMessageFromSendMessage) => {
   try {
-    const response = await API.post("/chat/send", messages);
-    console.log(response);
+    const response = await API.post("/chat/send", {
+      message: newMessageFromSendMessage,
+    });
+
+    console.log(response.data);
+
+    if (response.data.dialogState == "ReadyForFulfillment") {
+      messageEnded.value = true;
+        setTimeout(() => {
+            router.push({name: 'dashboard'})
+        }, 1000)
+    }
+
+    fetchMessage(response.data.messages);
+    newMessage.value = ""
+
   } catch (e) {
     console.error(e);
   }
 };
 
 const sendMessage = () => {
+  // console.log(newMessage.value)
   if (newMessage.value.trim()) {
-    addMessage(newMessage.value);
+    console.log("new message ref trim");
+    addMessage(newMessage.value.trim());
   }
 };
 
-const fetchMessage = (messages) => {
-  if (messages.value) {
-    messages.value.forEach((element) => {
+const fetchMessage = (incomingMessages) => {
+  if (incomingMessages) {
+    console.group("fetch messages");
+    console.log(incomingMessages);
+    console.groupEnd();
+
+    incomingMessages.forEach((element) => {
+      // console.log(element)
       messages.value.push(element);
     });
   }
@@ -103,12 +133,11 @@ const fetchMessage = (messages) => {
           <!-- show messages -->
           <div class="row mb-2">
             <div
-              class="mb-12"
+              class="mb-2"
               v-for="message in messages"
               v-bind:key="message.id"
             >
               <label
-                for="email"
                 :class="
                   message.sender_name == message.sender_id
                     ? 'col-md-12 text-md-start'
