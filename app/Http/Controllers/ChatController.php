@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Chat;
 use Illuminate\Http\Request;
 use Aws\LexRuntimeService\LexRuntimeServiceClient;
+use Illuminate\Http\Response;
 
 class ChatController extends Controller
 {
@@ -31,18 +32,31 @@ class ChatController extends Controller
         $this->botConfig['userId'] = 'Client-' . \Auth::id();
         $newSessionData = $lexRuntimeServiceClient->putSession($this->botConfig);
 
-        return [
-            "dialogState" => $newSessionData["dialogState"],
-            "messages"    => [
-                Chat::create([
-                    "session_id"  => $newSessionData["sessionId"],
-                    'message'     => "Hi",
-                    'sender_name' => $this->senderBotName,
-                    'sender_id'   => $this->senderBotId,
-                ])
-            ],
-            "slots" => $newSessionData["slots"],
-        ];
+        // return [
+        //     "dialogState" => $newSessionData["dialogState"],
+        //     "messages"    => [
+        //         Chat::create([
+        //             "session_id"  => $newSessionData["sessionId"],
+        //             'message'     => "Hi",
+        //             'sender_name' => $this->senderBotName,
+        //             'sender_id'   => $this->senderBotId,
+        //         ])
+        //     ],
+        //     "slots" => $newSessionData["slots"],
+        // ];
+
+        $messages = Chat::create([
+            "session_id"  => $newSessionData["sessionId"],
+            'message'     => "Hi",
+            'sender_name' => $this->senderBotName,
+            'sender_id'   => $this->senderBotId,
+        ]);
+
+        return response()->json([
+                "dialogState" => $newSessionData["dialogState"],
+                "messages"    => $messages,
+                "slots"       => $newSessionData["slots"],
+            ], Response::HTTP_OK);
     }
 
     public function send(Request $request)
@@ -86,10 +100,16 @@ class ChatController extends Controller
             ]);
         }
 
-        return [
+        // return [
+        //     "dialogState" => $returnMessage["dialogState"],
+        //     "slots"       => $returnMessage["slots"],
+        //     "messages"    => $messsages
+        // ];
+
+        return response()->json([
             "dialogState" => $returnMessage["dialogState"],
             "slots"       => $returnMessage["slots"],
             "messages"    => $messsages
-        ];
+        ], Response::HTTP_OK);
     }
 }
